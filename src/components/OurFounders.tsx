@@ -3,8 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { Mail, Phone, MessageCircle, ExternalLink } from 'lucide-react';
-import rayaanImage from '../../pictures/Rayaan.jpg';
-import harsithImage from '../../pictures/harsith.png';
+import rayaanImage from '/public/Rayaan.jpg';
+import harsithImage from '/public/harsith.png';
 
 export function OurFounders() {
   const founders = [
@@ -13,16 +13,16 @@ export function OurFounders() {
       image: rayaanImage,
       email: 'rayaanm5409@gmail.com',
       phone: '+91 84249 33585',
-      role: 'Primary Founder & Full-Stack Developer',
-      description: 'The visionary architect behind RoboQuest who built the entire website, platform, and technical infrastructure from the ground up. A passionate full-stack developer with expertise in modern web technologies, robotics, and education technology. Rayaan single-handedly designed and developed the complete RoboQuest learning platform, ensuring seamless user experience and robust functionality for students worldwide.'
+      role: 'Co-Founder & Tech Lead',
+      description: 'Passionate about robotics and education technology. Leads the technical development of RoboQuest.'
     },
     {
       name: 'Harsith',
       image: harsithImage,
       email: 'harsithrajan08@gmail.com',
       phone: '+91 91373 76422',
-      role: 'Co-Founder & Project Creator',
-      description: 'A creative force who collaborates closely with Rayaan to develop engaging projects and learning materials. Harsith specializes in creating hands-on robotics projects, curriculum development, and ensuring that every learning experience is both educational and entertaining. His expertise in project-based learning and creative problem-solving has been instrumental in making RoboQuest a comprehensive and engaging platform for young learners.'
+      role: 'Co-Founder & Creative Director',
+      description: 'Focused on creating engaging learning experiences and curriculum development for young learners.'
     }
   ];
 

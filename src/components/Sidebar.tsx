@@ -12,7 +12,7 @@ import {
   FolderOpen,
   Users
 } from 'lucide-react';
-import logoImage from '../../pictures/Transparent Logo.png';
+import logoImage from '/public/Transparent Logo.png';
 
 interface SidebarProps {
   activeSection: string;
