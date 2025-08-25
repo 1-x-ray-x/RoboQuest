@@ -6,6 +6,7 @@ import { Label } from './ui/label';
 import { Switch } from './ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { useAuth } from './AuthProvider';
+import { projectId } from '../utils/supabase/info';
 import { useProgress } from '../hooks/useProgress';
 import { 
   User, 
@@ -20,14 +21,14 @@ import {
 } from 'lucide-react';
 
 export function Settings() {
-  const { user, signOut } = useAuth();
-  const { progress, settings, loading, error } = useProgress();
+  const { user, session, signOut, refreshSession } = useAuth();
+  const { progress, settings, loading, error, refetch } = useProgress();
   const [saved, setSaved] = useState(false);
   const [formData, setFormData] = useState({
-    firstName: user?.firstName || '',
-    lastName: user?.lastName || '',
+    firstName: (user as any)?.user_metadata?.firstName || '',
+    lastName: (user as any)?.user_metadata?.lastName || '',
     email: user?.email || '',
-    parentEmail: user?.parentEmail || '',
+    parentEmail: (user as any)?.user_metadata?.parentEmail || '',
     language: settings?.language || 'en',
     theme: settings?.theme || 'light',
     soundEffects: settings?.soundEffects ?? true,
@@ -38,12 +39,92 @@ export function Settings() {
     dailyGoal: progress?.dailyGoal || 2
   });
 
+  // Sync local formData when backend data is fetched
+  React.useEffect(() => {
+    setFormData(prev => ({
+      ...prev,
+      firstName: (user as any)?.user_metadata?.firstName || '',
+      lastName: (user as any)?.user_metadata?.lastName || '',
+      email: user?.email || '',
+      parentEmail: (user as any)?.user_metadata?.parentEmail || '',
+      language: settings?.language || 'en',
+      theme: settings?.theme || 'light',
+      soundEffects: settings?.soundEffects ?? true,
+      backgroundMusic: settings?.backgroundMusic ?? false,
+      notifications: settings?.notifications ?? true,
+      emailUpdates: settings?.emailUpdates ?? false,
+      parentalNotifications: settings?.parentalNotifications ?? true,
+      dailyGoal: progress?.dailyGoal || 2
+    }));
+    if (settings?.theme) applyTheme(settings.theme);
+    if (settings?.language) document.documentElement.lang = settings.language;
+  }, [user?.id, (user as any)?.user_metadata, settings?.language, settings?.theme, progress?.dailyGoal]);
+
+  const applyTheme = (theme: string) => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else if (theme === 'light') {
+      document.documentElement.classList.remove('dark');
+    } else {
+      const darkMq = window.matchMedia('(prefers-color-scheme: dark)');
+      if (darkMq.matches) document.documentElement.classList.add('dark');
+      else document.documentElement.classList.remove('dark');
+    }
+  };
+
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    if (field === 'theme') {
+      applyTheme(value);
+    }
+    if (field === 'language') {
+      document.documentElement.lang = value;
+    }
   };
 
   const handleSave = async () => {
-    // In a real app, this would save to the backend
+    try {
+      const accessToken = session?.access_token;
+      const base = `https://${projectId}.supabase.co/functions/v1/make-server-4b9cf438`;
+      if (accessToken) {
+        await fetch(`${base}/user/profile`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            firstName: formData.firstName,
+            lastName: formData.lastName,
+            parentEmail: formData.parentEmail
+          })
+        });
+
+        await fetch(`${base}/user/settings`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            language: formData.language,
+            theme: formData.theme,
+            soundEffects: formData.soundEffects,
+            backgroundMusic: formData.backgroundMusic,
+            notifications: formData.notifications,
+            emailUpdates: formData.emailUpdates,
+            parentalNotifications: formData.parentalNotifications,
+            dailyGoal: formData.dailyGoal
+          })
+        });
+        // Refresh auth to reflect new user metadata and refetch settings/progress
+        await refreshSession();
+        await refetch();
+      }
+    } catch (e) {
+      console.error('Failed to save settings', e);
+    }
+
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };

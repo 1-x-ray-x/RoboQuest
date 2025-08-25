@@ -15,6 +15,7 @@ import { OurProjects } from './components/OurProjects';
 import { OurFounders } from './components/OurFounders';
 import { Button } from './components/ui/button';
 import { LogOut, Upload } from 'lucide-react';
+import { Landing } from './components/Landing';
 
 function AuthenticatedApp() {
   const { user, signOut, loading, isPasswordRecovery } = useAuth();
@@ -130,19 +131,65 @@ function AuthenticatedApp() {
 }
 
 function AuthScreen() {
-  const [isLogin, setIsLogin] = useState(true);
+  const [mode, setMode] = useState<'landing'|'login'|'signup'>('landing');
 
-  return isLogin ? (
-    <LoginForm onToggleMode={() => setIsLogin(false)} />
-  ) : (
-    <SignupForm onToggleMode={() => setIsLogin(true)} />
+  if (mode === 'landing') {
+    return <Landing onLogin={() => setMode('login')} onSignup={() => setMode('signup')} />;
+  }
+
+  const CloseBar = () => (
+    <div className="absolute top-4 right-4 z-50">
+      <button
+        onClick={() => setMode('landing')}
+        className="rounded-md border border-border bg-white/80 backdrop-blur px-2 py-1 text-sm hover:bg-white"
+        aria-label="Close and go back"
+      >
+        ×
+      </button>
+    </div>
+  );
+
+  if (mode === 'login') {
+    return (
+      <div className="relative">
+        <CloseBar />
+        <LoginForm onToggleMode={() => setMode('signup')} />
+      </div>
+    );
+  }
+  return (
+    <div className="relative">
+      <CloseBar />
+      <SignupForm onToggleMode={() => setMode('login')} />
+    </div>
   );
 }
 
 export default function App() {
   return (
     <AuthProvider>
-      <AuthenticatedApp />
+      <Root />
     </AuthProvider>
   );
+}
+
+function Root() {
+  const { user, loading, isPasswordRecovery } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+        <div className="text-center">
+          <div className="text-6xl mb-4">🤖</div>
+          <p className="text-lg">Loading your RoboQuest adventure...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isPasswordRecovery || !user) {
+    return <AuthScreen />;
+  }
+
+  return <AuthenticatedApp />;
 }

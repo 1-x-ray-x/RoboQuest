@@ -110,7 +110,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (email: string, password: string, userData: any) => {
     try {
-      const { data, error } = await supabase.auth.signUp({
+      // Create the account
+      const { data: signupData, error: signupError } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -118,11 +119,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       });
 
-      if (error) {
-        throw new Error(error.message);
+      if (signupError) {
+        throw new Error(signupError.message);
       }
 
-      return data;
+      // Attempt immediate sign-in so user enters the app right away
+      const { data: signinData, error: signinError } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (signinError) {
+        // If email confirmation is required, surface a friendlier message
+        throw new Error(signinError.message || 'Please verify your email to complete signup.');
+      }
+
+      return signinData ?? signupData;
     } catch (error) {
       console.log('Sign up error:', error);
       throw error;

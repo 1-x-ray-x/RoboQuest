@@ -899,6 +899,72 @@ app.get('/make-server-4b9cf438/user/progress', async (c) => {
   }
 })
 
+// Update user profile (firstName, lastName, parentEmail)
+app.put('/make-server-4b9cf438/user/profile', async (c) => {
+  try {
+    const accessToken = c.req.header('Authorization')?.split(' ')[1]
+    if (!accessToken) {
+      return c.json({ error: 'No authorization token provided' }, 401)
+    }
+
+    const { data: { user }, error } = await supabase.auth.getUser(accessToken)
+    if (error || !user) {
+      return c.json({ error: 'Unauthorized' }, 401)
+    }
+
+    const { firstName, lastName, parentEmail } = await c.req.json()
+
+    const { error: updateError } = await supabase.auth.admin.updateUserById(user.id, {
+      user_metadata: {
+        ...user.user_metadata,
+        firstName: firstName ?? user.user_metadata?.firstName,
+        lastName: lastName ?? user.user_metadata?.lastName,
+        parentEmail: parentEmail ?? user.user_metadata?.parentEmail
+      }
+    })
+
+    if (updateError) {
+      return c.json({ error: 'Failed to update profile: ' + updateError.message }, 400)
+    }
+
+    return c.json({ message: 'Profile updated' })
+  } catch (error) {
+    console.log('Error updating profile:', error)
+    return c.json({ error: 'Failed to update profile: ' + error }, 500)
+  }
+})
+
+// Update user settings (language, theme, toggles, dailyGoal)
+app.put('/make-server-4b9cf438/user/settings', async (c) => {
+  try {
+    const accessToken = c.req.header('Authorization')?.split(' ')[1]
+    if (!accessToken) {
+      return c.json({ error: 'No authorization token provided' }, 401)
+    }
+
+    const { data: { user }, error } = await supabase.auth.getUser(accessToken)
+    if (error || !user) {
+      return c.json({ error: 'Unauthorized' }, 401)
+    }
+
+    const updates = await c.req.json()
+    const current = await kv.get(`user:${user.id}:settings`) || {}
+    const newSettings = { ...current, ...updates, updatedAt: new Date().toISOString() }
+    await kv.set(`user:${user.id}:settings`, newSettings)
+
+    // dailyGoal lives in progress
+    if (typeof updates.dailyGoal === 'number') {
+      const progress = await kv.get(`user:${user.id}:progress`) || {}
+      await kv.set(`user:${user.id}:progress`, { ...progress, dailyGoal: updates.dailyGoal, updatedAt: new Date().toISOString() })
+    }
+
+    return c.json({ message: 'Settings updated', settings: newSettings })
+  } catch (error) {
+    console.log('Error updating settings:', error)
+    return c.json({ error: 'Failed to update settings: ' + error }, 500)
+  }
+})
+
 // Admin-only tutorial upload
 app.post('/make-server-4b9cf438/content/upload', async (c) => {
   try {
@@ -1121,7 +1187,7 @@ app.get('/make-server-4b9cf438/course/:id', async (c) => {
   }
 })
 
-// Complete Course Module
+// Complete Course Module (no XP/level awards)
 app.post('/make-server-4b9cf438/course/:courseId/module/:moduleId/complete', async (c) => {
   try {
     const accessToken = c.req.header('Authorization')?.split(' ')[1]
@@ -1155,28 +1221,16 @@ app.post('/make-server-4b9cf438/course/:courseId/module/:moduleId/complete', asy
     completedModules.push(moduleId)
     coursesInProgress[courseId] = completedModules
     
-    // Calculate XP reward (10 XP per module)
-    const xpReward = 10
-    const newTotalXP = (currentProgress.totalXP || 0) + xpReward
-    const newLessonsCompleted = (currentProgress.lessonsCompleted || 0) + 1
-    const newDailyProgress = (currentProgress.dailyProgress || 0) + 1
-    
-    // Check if course is completed
+    // No XP or level changes for courses. Only track local course progress.
     const isCompleted = completedModules.length >= course.moduleCount
-    let newLevel = currentProgress.level || 0
     let coursesCompleted = currentProgress.coursesCompleted || []
-    
     if (isCompleted && !coursesCompleted.includes(courseId)) {
-      newLevel += 1
       coursesCompleted = [...coursesCompleted, courseId]
     }
-    
+
     const newProgress = {
       ...currentProgress,
-      level: newLevel,
-      totalXP: newTotalXP,
-      lessonsCompleted: newLessonsCompleted,
-      dailyProgress: newDailyProgress,
+      // Keep XP/level unchanged for courses
       coursesInProgress,
       coursesCompleted,
       lastActiveDate: new Date().toDateString(),
@@ -1186,9 +1240,8 @@ app.post('/make-server-4b9cf438/course/:courseId/module/:moduleId/complete', asy
     await kv.set(`user:${user.id}:progress`, newProgress)
     
     return c.json({ 
-      message: 'Module completed successfully', 
+      message: 'Module completion recorded (no XP awarded).', 
       progress: newProgress,
-      xpEarned: xpReward,
       courseCompleted: isCompleted
     })
     
@@ -1230,7 +1283,7 @@ app.get('/make-server-4b9cf438/project/:id', async (c) => {
   }
 })
 
-// Complete Project
+// Complete Project (no XP awards)
 app.post('/make-server-4b9cf438/project/:id/complete', async (c) => {
   try {
     const accessToken = c.req.header('Authorization')?.split(' ')[1]
@@ -1259,12 +1312,11 @@ app.post('/make-server-4b9cf438/project/:id/complete', async (c) => {
       return c.json({ message: 'Project already completed', progress: currentProgress })
     }
     
-    const newTotalXP = (currentProgress.totalXP || 0) + project.xpReward
     const newProjectsBuilt = (currentProgress.projectsBuilt || 0) + 1
     
     const newProgress = {
       ...currentProgress,
-      totalXP: newTotalXP,
+      // No XP for projects
       projectsBuilt: newProjectsBuilt,
       completedProjects: [...completedProjects, projectId],
       lastActiveDate: new Date().toDateString(),
@@ -1274,9 +1326,8 @@ app.post('/make-server-4b9cf438/project/:id/complete', async (c) => {
     await kv.set(`user:${user.id}:progress`, newProgress)
     
     return c.json({ 
-      message: 'Project completed successfully', 
+      message: 'Project completion recorded (no XP awarded).', 
       progress: newProgress,
-      xpEarned: project.xpReward,
       timeSpent
     })
     

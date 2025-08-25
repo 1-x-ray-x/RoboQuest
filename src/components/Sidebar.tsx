@@ -28,12 +28,7 @@ export function Sidebar({ activeSection, onSectionChange, isAdmin = false }: Sid
       icon: Home,
       description: 'Overview & quick actions'
     },
-    {
-      id: 'courses',
-      label: 'Courses',
-      icon: BookOpen,
-      description: 'Structured learning paths'
-    },
+    // Courses removed from navigation per product decision
     {
       id: 'tutorials',
       label: 'Tutorials',

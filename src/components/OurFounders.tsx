@@ -13,16 +13,16 @@ export function OurFounders() {
       image: rayaanImage,
       email: 'rayaanm5409@gmail.com',
       phone: '+91 84249 33585',
-      role: 'Co-Founder & Tech Lead',
-      description: 'Passionate about robotics and education technology. Leads the technical development of RoboQuest.'
+      role: 'Primary Founder & Developer',
+      description: ''
     },
     {
       name: 'Harsith',
       image: harsithImage,
       email: 'harsithrajan08@gmail.com',
       phone: '+91 91373 76422',
-      role: 'Co-Founder & Creative Director',
-      description: 'Focused on creating engaging learning experiences and curriculum development for young learners.'
+      role: 'Primary Associate',
+      description: ''
     }
   ];
 
@@ -40,13 +40,7 @@ export function OurFounders() {
         {/* Header */}
         <div className="text-center mb-12">
           <div className="text-6xl mb-4">👥</div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Our Founders Dream
-          </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Meet the visionaries behind RoboQuest - two passionate educators and technologists 
-            dedicated to revolutionizing how children learn coding and robotics.
-          </p>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">Our Founders</h1>
         </div>
 
         {/* Mission Statement */}
@@ -82,9 +76,11 @@ export function OurFounders() {
                 <Badge className="mx-auto bg-blue-100 text-blue-800 hover:bg-blue-200">
                   {founder.role}
                 </Badge>
-                <CardDescription className="text-base mt-3 text-gray-600">
-                  {founder.description}
-                </CardDescription>
+                {founder.description && (
+                  <CardDescription className="text-base mt-3 text-gray-600">
+                    {founder.description}
+                  </CardDescription>
+                )}
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="bg-gray-50 rounded-lg p-6">
@@ -139,47 +135,7 @@ export function OurFounders() {
           ))}
         </div>
 
-        {/* Company Vision */}
-        <Card className="border-2 border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50">
-          <CardContent className="p-8">
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">The RoboQuest Vision</h2>
-              <div className="text-4xl mb-4">🚀</div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="text-center">
-                <div className="bg-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-3 shadow-md">
-                  <span className="text-2xl">🎯</span>
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-2">Accessible Learning</h3>
-                <p className="text-sm text-gray-600">
-                  Making quality coding and robotics education available to every child, regardless of background.
-                </p>
-              </div>
-              
-              <div className="text-center">
-                <div className="bg-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-3 shadow-md">
-                  <span className="text-2xl">💡</span>
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-2">Innovation Focus</h3>
-                <p className="text-sm text-gray-600">
-                  Fostering creativity and problem-solving skills through hands-on STEM education.
-                </p>
-              </div>
-              
-              <div className="text-center">
-                <div className="bg-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-3 shadow-md">
-                  <span className="text-2xl">🌟</span>
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-2">Future Ready</h3>
-                <p className="text-sm text-gray-600">
-                  Preparing students for the digital future with essential 21st-century skills.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Company Vision - trimmed */}
 
         {/* Call to Action */}
         <div className="text-center mt-12">

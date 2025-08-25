@@ -139,13 +139,6 @@ export function Dashboard({ onNavigate }: DashboardProps) {
       action: () => onNavigate?.('tutorials')
     },
     {
-      title: 'Start a Course',
-      description: 'Begin structured learning',
-      icon: BookOpen,
-      color: 'from-green-500 to-blue-500',
-      action: () => onNavigate?.('courses')
-    },
-    {
       title: 'Practice Coding',
       description: 'Work on hands-on projects',
       icon: Code,
